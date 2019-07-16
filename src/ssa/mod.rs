@@ -148,7 +148,6 @@ where
         G_: Graphics,
     {
         use graphics::{DrawState, Image, Transformed};
-        use std::mem::transmute;
 
         let motion = &self.motions[motion];
         let frame = &motion.animation.ssa[self.frame];
@@ -160,7 +159,9 @@ where
         for part in frame {
             let tex: &G_::Texture = unsafe {
                 // I know this is the fucking same...
-                transmute(&self.images_buf[part.image_number as usize])
+                &*(&self.images_buf[part.image_number as usize]
+                 as *const G::Texture
+                 as *const G_::Texture)
             };
 
             let t = t
@@ -174,9 +175,11 @@ where
                 )
                 .trans(-0.5 * part.source_width, -0.5 * part.source_height);
 
+
+            /*
             use graphics::draw_state::Blend;
 
-            /*let state = state.blend(match part.blend_type {
+            let state = state.blend(match part.blend_type {
                 BlendType::Mix => Blend::Alpha,
                 BlendType::Multiple => Blend::Multiply,
                 BlendType::Additive => Blend::Add,
@@ -203,7 +206,7 @@ where
         self.frame += frames as usize;
 
         if self.frame_count <= self.frame {
-            self.frame = self.frame % self.frame_count;
+            self.frame %= self.frame_count;
         }
     }
 }

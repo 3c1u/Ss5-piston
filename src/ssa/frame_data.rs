@@ -1,5 +1,4 @@
 use crate::ssa::BlendType;
-use serde::de::{self, Deserialize};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct FrameData {
