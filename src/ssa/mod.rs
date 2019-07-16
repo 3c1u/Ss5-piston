@@ -153,7 +153,7 @@ where
         let motion = &self.motions[motion];
         let frame = &motion.animation.ssa[self.frame];
 
-        let mut state = DrawState::new_alpha();
+        let state = DrawState::new_alpha();
 
         let t = transform;
 
@@ -176,12 +176,12 @@ where
 
             use graphics::draw_state::Blend;
 
-            state.blend(match part.blend_type {
+            /*let state = state.blend(match part.blend_type {
                 BlendType::Mix => Blend::Alpha,
                 BlendType::Multiple => Blend::Multiply,
                 BlendType::Additive => Blend::Add,
                 BlendType::Subtractive => Blend::Invert,
-            });
+            });*/
 
             Image::new_color([1.0, 1.0, 1.0, part.opacity as f32])
                 .src_rect([
