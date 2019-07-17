@@ -6,7 +6,6 @@ use ss5_piston::ssa::SsaJson;
 fn main() {
     let mut window: PistonWindow<Sdl2Window> =
         WindowSettings::new("Hello, SpriteStudio!", [800.0, 600.0])
-            .resizable(false)
             .build()
             .unwrap();
 
