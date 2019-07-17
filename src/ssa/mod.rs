@@ -15,11 +15,19 @@ use serde::Deserialize;
 use serde_json::from_str;
 
 mod blend_type;
-pub use blend_type::BlendType;
+use blend_type::BlendType;
 
 mod frame_data;
-pub use frame_data::FrameData;
+use frame_data::FrameData;
 
+#[derive(Copy, Clone, PartialEq)]
+enum PlayStatus {
+    Loop,
+    Nonloop,
+    Stop,
+}
+
+/// SSAJSONをロードし，再生します．
 pub struct SsaJson<G>
 where
     G: Graphics + 'static,
@@ -33,6 +41,8 @@ where
     frame_count: usize,
     time_elapsed: f64,
     cycle: f64,
+
+    play_status: PlayStatus,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -70,7 +80,7 @@ impl<G> SsaJson<G>
 where
     G: Graphics,
 {
-    /// SSAJSONファイルを読み込む．
+    /// SSAJSONファイルを読み込みます．
     pub fn open<P>(path: P) -> Option<SsaJson<G>>
     where
         P: AsRef<Path>,
@@ -93,6 +103,7 @@ where
             frame_count: 1,
             time_elapsed: 0.0,
             cycle: 0.0,
+            play_status: PlayStatus::Stop,
         };
 
         ssa.load_json(path)?;
@@ -114,6 +125,30 @@ where
         Some(())
     }
 
+    /// モーションを一度だけ再生します．
+    pub fn play_once(&mut self) {
+        self.frame = 0;
+        self.play_status = PlayStatus::Nonloop;
+    }
+
+    /// モーションをループで再生します．
+    pub fn play_looped(&mut self) {
+        self.frame = 0;
+        self.play_status = PlayStatus::Loop;
+    }
+
+    /// モーションを一時停止します．
+    pub fn pause(&mut self) {
+        self.play_status = PlayStatus::Stop;
+    }
+
+    /// モーションを停止します．
+    pub fn stop(&mut self) {
+        self.frame = 0;
+        self.play_status = PlayStatus::Stop;
+    }
+
+    /// モーションを読み込み，テクスチャを確保します．
     pub fn allocate_texture_for<F, R, C>(&mut self, c: &mut TextureContext<F, R, C>, motion: usize)
     where
         R: Resources,
@@ -143,6 +178,7 @@ where
         }
     }
 
+    /// モーションを描画します．
     pub fn draw<'t, G_>(&mut self, transform: Matrix2d, g: &'t mut G_, motion: usize)
     where
         G_: Graphics,
@@ -159,22 +195,23 @@ where
         for part in frame {
             let tex: &G_::Texture = unsafe {
                 // I know this is the fucking same...
-                &*(&self.images_buf[part.image_number as usize]
-                 as *const G::Texture
-                 as *const G_::Texture)
+                &*(&self.images_buf[part.image_number as usize] as *const G::Texture
+                    as *const G_::Texture)
             };
 
             let t = t
                 .trans(part.position_x, part.position_y)
                 .rot_rad(-part.angle)
                 .scale(part.scale_x, part.scale_y)
-                .trans(-part.pivot_offset_x + 0.5 * part.source_width, -part.pivot_offset_y + 0.5 * part.source_height)
+                .trans(
+                    -part.pivot_offset_x + 0.5 * part.source_width,
+                    -part.pivot_offset_y + 0.5 * part.source_height,
+                )
                 .scale(
                     if part.flip_h == 1 { -1.0 } else { 1.0 },
                     if part.flip_v == 1 { -1.0 } else { 1.0 },
                 )
                 .trans(-0.5 * part.source_width, -0.5 * part.source_height);
-
 
             /*
             use graphics::draw_state::Blend;
@@ -197,7 +234,12 @@ where
         }
     }
 
+    /// フレームの更新の際に呼び出すメソッド．
     pub fn update(&mut self, delta_time: f64) {
+        if self.play_status == PlayStatus::Stop {
+            return;
+        }
+
         self.time_elapsed += delta_time;
 
         let frames = (self.time_elapsed / self.cycle).floor();
@@ -206,7 +248,16 @@ where
         self.frame += frames as usize;
 
         if self.frame_count <= self.frame {
-            self.frame %= self.frame_count;
+            match self.play_status {
+                PlayStatus::Loop => {
+                    self.frame %= self.frame_count;
+                }
+                PlayStatus::Nonloop => {
+                    self.frame = 0;
+                    self.play_status = PlayStatus::Stop;
+                }
+                _ => {}
+            }
         }
     }
 }

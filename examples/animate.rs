@@ -10,7 +10,7 @@ fn main() {
             .build()
             .unwrap();
 
-    let mut a = SsaJson::<G2d<'static>>::open("datas/animetest.json").unwrap();
+    let mut a = SsaJson::<G2d>::open("datas/animetest.json").unwrap();
 
     let mut c = window.create_texture_context();
     a.allocate_texture_for(&mut c, 0);
@@ -30,6 +30,10 @@ fn main() {
                 clear([1.0, 1.0, 1.0, 1.0], g);
                 a.draw(c.transform.trans(w * 0.5, h * 0.5), g, 0);
             });
+        }
+
+        if let Some(_) = evt.press_args() {
+            a.play_once();
         }
     }
 }
