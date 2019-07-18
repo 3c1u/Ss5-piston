@@ -5,14 +5,18 @@ use ss5_piston::ssa::SsaJson;
 
 fn main() {
     let mut window: PistonWindow<Sdl2Window> =
-        WindowSettings::new("Hello, SpriteStudio!", [800.0, 600.0])
+        WindowSettings::new("SpriteStudio5 on Piston", [800.0, 600.0])
             .build()
             .unwrap();
 
     let mut a = SsaJson::<G2d>::open("datas/animetest.json").unwrap();
 
+    const MOTION: usize = 0;
+
     let mut c = window.create_texture_context();
-    a.allocate_texture_for(&mut c, 0);
+    a.allocate_texture_for(&mut c, MOTION);
+
+    window.set_size(a.get_size_of(MOTION));
 
     // イベントループ
     while let Some(evt) = window.next() {
@@ -27,7 +31,7 @@ fn main() {
 
             window.draw_2d(&evt, |c, g, _d| {
                 clear([1.0, 1.0, 1.0, 1.0], g);
-                a.draw(c.transform.trans(w * 0.5, h * 0.5), g, 0);
+                a.draw(c.transform.trans(w * 0.5, h * 0.5), g, MOTION);
             });
         }
 
