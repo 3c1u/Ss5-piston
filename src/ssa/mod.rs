@@ -148,6 +148,10 @@ where
         self.play_status = PlayStatus::Stop;
     }
 
+    pub fn get_size_of(&self, motion: usize) -> (f64, f64) {
+        (self.motions[motion].animation.canvas_width, self.motions[motion].animation.canvas_height)
+    }
+
     /// モーションを読み込み，テクスチャを確保します．
     pub fn allocate_texture_for<F, R, C>(&mut self, c: &mut TextureContext<F, R, C>, motion: usize)
     where
@@ -213,15 +217,15 @@ where
                 )
                 .trans(-0.5 * part.source_width, -0.5 * part.source_height);
 
-            /*
+            
             use graphics::draw_state::Blend;
 
             let state = state.blend(match part.blend_type {
                 BlendType::Mix => Blend::Alpha,
                 BlendType::Multiple => Blend::Multiply,
-                BlendType::Additive => Blend::Add,
+                BlendType::Additive => Blend::Screen,
                 BlendType::Subtractive => Blend::Invert,
-            });*/
+            });
 
             Image::new_color([1.0, 1.0, 1.0, part.opacity as f32])
                 .src_rect([

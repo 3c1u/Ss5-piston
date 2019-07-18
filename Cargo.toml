@@ -18,3 +18,7 @@ gfx_core = "0.8.3"
 [dev-dependencies]
 piston_window = "0.100.0"
 pistoncore-sdl2_window = "0.63.0"
+
+[patch.crates-io]
+piston2d-graphics = { git = 'https://github.com/3c1u/graphics' }
+piston2d-gfx_graphics = { git = 'https://github.com/3c1u/gfx_graphics' }
