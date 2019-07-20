@@ -149,7 +149,10 @@ where
     }
 
     pub fn get_size_of(&self, motion: usize) -> (f64, f64) {
-        (self.motions[motion].animation.canvas_width, self.motions[motion].animation.canvas_height)
+        (
+            self.motions[motion].animation.canvas_width,
+            self.motions[motion].animation.canvas_height,
+        )
     }
 
     /// モーションを読み込み，テクスチャを確保します．
@@ -217,7 +220,6 @@ where
                 )
                 .trans(-0.5 * part.source_width, -0.5 * part.source_height);
 
-            
             use graphics::draw_state::Blend;
 
             let state = state.blend(match part.blend_type {
